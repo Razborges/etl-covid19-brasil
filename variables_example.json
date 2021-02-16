@@ -1,0 +1,7 @@
+{
+  "PATH_IBGE_CITIES": "https://servicodados.ibge.gov.br/api/v1/localidades/municipios",
+
+  "POSTGRES_USER": "root",
+  "POSTGRES_PASS": "root",
+  "POSTGRES_HOST": "postgres-data:5432/docker"
+}
