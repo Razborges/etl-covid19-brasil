@@ -3,5 +3,6 @@
 
   "POSTGRES_USER": "root",
   "POSTGRES_PASS": "root",
-  "POSTGRES_HOST": "postgres-data:5432/docker"
+  "POSTGRES_DBASE": "docker",
+  "POSTGRES_HOST": "postgres-data:5432"
 }
