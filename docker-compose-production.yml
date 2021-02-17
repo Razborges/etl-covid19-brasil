@@ -18,13 +18,36 @@ services:
     postgres-data:
         image: postgres
         environment:
-        - POSTGRES_USER=root
-        - POSTGRES_PASSWORD=root
-        - POSTGRES_DB=docker
+            - POSTGRES_USER=root
+            - POSTGRES_PASSWORD=root
+            - POSTGRES_DB=docker
         volumes:
             - ${PWD}/postgres:/var/lib/postgresql/data
         ports:
             - "5435:5432"
+    
+    elastic:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+        container_name: docker_elasticsearch
+        ports:
+            - 9200:9200
+        environment:
+            - http.host=0.0.0.0
+            - transport.host=127.0.0.1
+            - xpack.security.enabled=false
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.5.1
+        container_name: docker_kibana
+        depends_on:
+            - elastic
+        ports:
+            - 5601:5601
+        environment:
+        xpack.security.enabled: "false"
+        discovery.type: "single-node"
+        ELASTICSEARCH_HOSTS: "http://elastic:9200"
 
     webserver:
         image: neylsoncrepalde/airflow-docker:2.0.0-pymongo
@@ -32,6 +55,7 @@ services:
         depends_on:
             - postgres
             - redis
+            - elastic
         environment:
             - LOAD_EX=n
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
