@@ -4,5 +4,7 @@
   "POSTGRES_USER": "root",
   "POSTGRES_PASS": "root",
   "POSTGRES_DBASE": "docker",
-  "POSTGRES_HOST": "postgres-data:5432"
+  "POSTGRES_HOST": "postgres-data:5432",
+
+  "ELASTISC_HOST": "http://elastic:9200"
 }

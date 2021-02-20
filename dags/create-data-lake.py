@@ -63,6 +63,7 @@ def create_data_lake():
 
   @task
   def get_data_covid():
+    import numpy as np
     PATH_FILE = '/usr/local/airflow/data/caso_full.csv'
     
     logging.info('******** Read file csv covid...')
@@ -70,13 +71,16 @@ def create_data_lake():
     df['created_at_datalake'] = datetime.today()
 
     logging.info('******** Prepare data...')
+    
     df_parser = df.dropna(subset=['city', 'city_ibge_code'])
     df_parser['last_available_confirmed_per_100k_inhabitants'] = df_parser['last_available_confirmed_per_100k_inhabitants'].replace({
       '': 0,
       ' ': 0,
       None: 0,
-      pd.np.NaN: 0
+      np.NaN: 0
     })
+    
+    df_parser['city_ibge_code'] = df_parser['city_ibge_code'].astype(np.int64)
 
     logging.info('******** Start save db...')
     conn = conn_postgres()
