@@ -6,5 +6,6 @@
   "POSTGRES_DBASE": "docker",
   "POSTGRES_HOST": "postgres-data:5432",
 
-  "ELASTISC_HOST": "http://elastic:9200"
+  "ELASTIC_HOST": "http://elastic",
+  "ELASTIC_PORT": 9200
 }

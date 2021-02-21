@@ -1,6 +1,6 @@
-boto3
 pandas
 loggin
-espandas
 psycopg2
 numpy
+elasticsearch
+eland

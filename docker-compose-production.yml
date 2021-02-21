@@ -28,7 +28,6 @@ services:
     
     elastic:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
-        container_name: docker_elasticsearch
         ports:
             - 9200:9200
         environment:
@@ -39,7 +38,6 @@ services:
 
     kibana:
         image: docker.elastic.co/kibana/kibana:7.5.1
-        container_name: docker_kibana
         depends_on:
             - elastic
         ports:
@@ -118,11 +116,13 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./data:/usr/local/airflow/data
+            - ./requirements.txt:/requirements.txt
             # Uncomment to include custom plugins
             # - ./plugins:/usr/local/airflow/plugins
         environment:
             - FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
             - EXECUTOR=Celery
+            - PYTHON_DEPS=elasticsearch eland
             # - POSTGRES_USER=airflow
             # - POSTGRES_PASSWORD=airflow
             # - POSTGRES_DB=airflow

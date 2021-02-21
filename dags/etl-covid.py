@@ -39,6 +39,15 @@ def etl_covid():
     conn = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_HOST}/{POSTGRES_DBASE}')
     return conn
   
+  def conn_elastic():
+    from elasticsearch import Elasticsearch
+
+    ELASTIC_HOST = Variable.get('ELASTIC_HOST')
+    ELASTIC_PORT = Variable.get('ELASTIC_PORT')
+
+    conn = Elasticsearch({'host': ELASTIC_HOST, 'port': ELASTIC_PORT})
+    return conn
+  
   @task
   def get_data_covid():
     import sqlalchemy as db
@@ -98,9 +107,21 @@ def etl_covid():
   
   @task
   def save_elastic(file_path):
+    import eland as ed
+
     df = pd.read_csv(file_path, sep=';')
     print(df.head())
-  
+
+    INDEX = 'db-covid-now'
+
+    conn = conn_elastic()
+    ed.pandas_to_eland(
+      pd_df=df,
+      es_client=conn,
+      es_dest_index=INDEX,
+      es_if_exists='replace'
+    )
+
   covid = get_data_covid()
   microrregioes = get_data_microrregioes()
   data = join_data(covid, microrregioes)

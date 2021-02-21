@@ -24,7 +24,6 @@ services:
     
     elastic:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
-        container_name: docker_elasticsearch
         ports:
             - 9200:9200
         environment:
@@ -35,7 +34,6 @@ services:
 
     kibana:
         image: docker.elastic.co/kibana/kibana:7.5.1
-        container_name: docker_kibana
         depends_on:
             - elastic
         ports:
@@ -61,7 +59,10 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./data:/usr/local/airflow/data
+            - ./requirements.txt:/requirements.txt
             # - ./plugins:/usr/local/airflow/plugins
+        environment:
+            - PYTHON_DEPS=elasticsearch eland
         ports:
             - "8080:8080"
         command: webserver
