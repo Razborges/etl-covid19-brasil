@@ -1,6 +1,6 @@
+elasticsearch
+eland
 pandas
 loggin
 psycopg2
 numpy
-elasticsearch
-eland
