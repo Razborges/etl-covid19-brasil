@@ -28,6 +28,17 @@ def etl_covid():
     consolida e filtra as informações importantes e salva em uma base ElasticSearch para ser o Data Mart da aplicação.
   '''
 
+  def conn_postgres_cursor():
+    import psycopg2
+
+    POSTGRES_USER = Variable.get('POSTGRES_USER')
+    POSTGRES_PASS = Variable.get('POSTGRES_PASS')
+    POSTGRES_DBASE = Variable.get('POSTGRES_DBASE')
+    POSTGRES_HOST = Variable.get('POSTGRES_HOST')
+
+    conn = psycopg2.connect(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_HOST}/{POSTGRES_DBASE}')
+    return conn
+
   def conn_postgres():
     from sqlalchemy import create_engine
 
@@ -38,6 +49,32 @@ def etl_covid():
 
     conn = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_HOST}/{POSTGRES_DBASE}')
     return conn
+  
+  def df_to_database(conn, df, table_name, if_exists='replace', encoding='utf-8'):
+    from io import StringIO
+    from sqlalchemy import create_engine
+
+    POSTGRES_USER = Variable.get('POSTGRES_USER')
+    POSTGRES_PASS = Variable.get('POSTGRES_PASS')
+    POSTGRES_DBASE = Variable.get('POSTGRES_DBASE')
+    POSTGRES_HOST = Variable.get('POSTGRES_HOST')
+
+    connAux = create_engine(f'postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_HOST}/{POSTGRES_DBASE}')
+    # Create Table
+    logging.info('******** Create table...')
+    df[:0].to_sql(table_name, connAux, if_exists=if_exists, index=False)
+
+    # Prepare data
+    logging.info('******** Create buffer...')
+    buffer = StringIO()
+    df.to_csv(buffer, sep=',', header=False, encoding=encoding, index=False)
+    buffer.seek(0)
+
+    logging.info('******** Insert data...')
+    cursor = conn.cursor()
+    cursor.copy_from(buffer, table_name, sep=",")
+    conn.commit()
+    logging.info('******** End copy data')
   
   def conn_elastic():
     from elasticsearch import Elasticsearch
@@ -106,25 +143,34 @@ def etl_covid():
     return FILE_PATH_JOIN_DATA
   
   @task
-  def save_elastic(file_path):
-    import eland as ed
-
+  def save_database(file_path):
     df = pd.read_csv(file_path, sep=';')
-    print(df.head())
+    logging.info('******** Start save db...')
+    conn = conn_postgres_cursor()
+    df_to_database(conn, df, 'data_mart')
+    conn.close()
+  
+  # @task
+  # def save_elastic(file_path):
+  #   import eland as ed
 
-    INDEX = 'db-covid-now'
+  #   df = pd.read_csv(file_path, sep=';')
+  #   print(df.head())
 
-    conn = conn_elastic()
-    ed.pandas_to_eland(
-      pd_df=df,
-      es_client=conn,
-      es_dest_index=INDEX,
-      es_if_exists='replace'
-    )
+  #   INDEX = 'db-covid-now'
+
+  #   conn = conn_elastic()
+  #   ed.pandas_to_eland(
+  #     pd_df=df,
+  #     es_client=conn,
+  #     es_dest_index=INDEX,
+  #     es_if_exists='replace'
+  #   )
 
   covid = get_data_covid()
   microrregioes = get_data_microrregioes()
   data = join_data(covid, microrregioes)
-  save = save_elastic(data)
+  save = save_database(data)
+  # save = save_elastic(data)
 
 etl_covid = etl_covid()
